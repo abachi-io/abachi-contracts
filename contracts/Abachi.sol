@@ -17,15 +17,12 @@ import "./AbachiAccessControlled.sol";
 contract Abachi is ERC20Permit, IABI, AbachiAccessControlled {
     using SafeMath for uint256;
 
-    uint256 public maxSupply = 100000000 * 10**9;
-
     constructor(address _authority)
     ERC20("Abachi", "ABI", 9)
     ERC20Permit("Abachi")
     AbachiAccessControlled(IAbachiAuthority(_authority)) {}
 
     function mint(address account_, uint256 amount_) external override onlyVault {
-        require(totalSupply().add(amount_) <= maxSupply, 'Exceeds maximum allowed tokens to be minted');
         _mint(account_, amount_);
     }
 
