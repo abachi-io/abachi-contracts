@@ -7,7 +7,7 @@ chai.use(require("chai-as-promised"));
 
 describe("Abachi token", () => {
 
-  let Abachi, owner, address, newOwner;
+  let Abachi, owner, newOwner;
   let ABIAuth;
 
   beforeEach(async () => {
@@ -44,8 +44,8 @@ describe("Abachi token", () => {
     });
 
     it("should not mint beyond max supply", async () => {      
-      await expect(Abachi.mint(newOwner.address, BigInt(1000000 * 10**9 + 1))).to.be.rejected;
-      await expect(Abachi.mint(newOwner.address, BigInt(1000000 * 10**9))).not.to.be.rejected;
+      await expect(Abachi.mint(newOwner.address, BigInt(100 * 1e6 * 1e9) + BigInt(1))).to.be.rejected;
+      await expect(Abachi.mint(newOwner.address, BigInt(100 * 1e6 * 1e9))).to.be.fulfilled;
     });
   });
 

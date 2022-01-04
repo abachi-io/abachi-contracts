@@ -25,7 +25,7 @@ contract Abachi is ERC20Permit, IABI, AbachiAccessControlled {
     AbachiAccessControlled(IAbachiAuthority(_authority)) {}
 
     function mint(address account_, uint256 amount_) external override onlyVault {
-        require(totalSupply().add(amount_) <= maxMint, 'Exceeds maximum allowed tokens to be minted');
+        require(totalSupply().add(amount_) <= maxSupply, 'Exceeds maximum allowed tokens to be minted');
         _mint(account_, amount_);
     }
 
