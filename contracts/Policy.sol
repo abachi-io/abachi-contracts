@@ -14,8 +14,8 @@ interface IPolicy {
 
 contract Policy is IPolicy {
 
-    address internal _owner;
-    address internal _newOwner;
+    address public _owner;
+    address public _newOwner;
 
     event OwnershipPushed(address indexed previousOwner, address indexed newOwner);
     event OwnershipPulled(address indexed previousOwner, address indexed newOwner);
