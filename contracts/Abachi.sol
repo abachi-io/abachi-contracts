@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.7.5;
 
-import "./IERC20.sol";
+import "./interfaces/IERC20.sol";
 
 interface IABI is IERC20 {
   function mint(address account_, uint256 amount_) external;
@@ -10,12 +10,12 @@ interface IABI is IERC20 {
 
   function burnFrom(address account_, uint256 amount_) external;
 }
-import "./ERC20Permit.sol";
+import "./types/ERC20Permit.sol";
 
-import "./AbachiAccessControlled.sol";
+import "./types/AbachiAccessControlled.sol";
 
 contract Abachi is ERC20Permit, IABI, AbachiAccessControlled {
-    using SafeMath for uint256;
+  using SafeMath for uint256;
 
     constructor(address _authority)
     ERC20("Abachi", "ABI", 9)

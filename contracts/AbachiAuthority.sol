@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.7.5;
 
-import "./IAbachiAuthority.sol";
+import "./interfaces/IAbachiAuthority.sol";
 
-import "./AbachiAccessControlled.sol";
+import "./types/AbachiAccessControlled.sol";
 
 contract AbachiAuthority is IAbachiAuthority, AbachiAccessControlled {
 
