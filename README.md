@@ -58,7 +58,7 @@ cp .env.example .env
 | AbachiStaking    | [0x321019dC2dF5d09A47D3Cf4D8319E82feF9d75d4](https://polygonscan.com/address/0x321019dC2dF5d09A47D3Cf4D8319E82feF9d75d4)   |
 | BondingCalculator     | [0x9d38B914B3755a697EEA39d9A146eb1a39516bc8](https://polygonscan.com/address/0x9d38B914B3755a697EEA39d9A146eb1a39516bc8)   |
 | Bond Depository (V2)     | [0xC55686ccad36cF586F79658529e3A4E9bb43ddAf](https://polygonscan.com/address/0xC55686ccad36cF586F79658529e3A4E9bb43ddAf)   |
-| DAI Bond (V1)     | [0x4Fe131DA34b852E9619efC6bC02Aa334EB5fc8eB ](https://polygonscan.com/address/0x4Fe131DA34b852E9619efC6bC02Aa334EB5fc8eB )   |
+| DAI Bond (V1)     | [0x105BcdDaBDF5e8a4e14C8e23B2E8d9BA220143c2 ](https://polygonscan.com/address/0x105BcdDaBDF5e8a4e14C8e23B2E8d9BA220143c2 )   |
 
 ## Contribution
 
