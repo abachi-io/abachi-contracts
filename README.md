@@ -53,6 +53,7 @@ cp .env.example .env
 |     ------------- | ------------- |
 | Abachi Authority      | [0x4b2Bd29b81D32e3DbCeB47260f0BbC76A6A0B8cd](https://polygonscan.com/address/0x4b2Bd29b81D32e3DbCeB47260f0BbC76A6A0B8cd)   |
 | Abachi (ABI)           | [0x6d5f5317308C6fE7D6CE16930353a8Dfd92Ba4D7](https://polygonscan.com/address/0x6d5f5317308C6fE7D6CE16930353a8Dfd92Ba4D7)   |
+| Treasury               | [0xe05Be52B9FB121c63afeB526B154B790936Ff170](https://polygonscan.com/address/0xe05Be52B9FB121c63afeB526B154B790936Ff170) |
 | sABI     | [0x925a785a347f4a03529b06C50fa1b9a10808CAb5](https://polygonscan.com/address/0x925a785a347f4a03529b06C50fa1b9a10808CAb5)   |
 | gABI     | [0xEd6AAb1615AaC7BC4C108dFd4Fdc9AD0c8304d47](https://polygonscan.com/address/0xEd6AAb1615AaC7BC4C108dFd4Fdc9AD0c8304d47)   |
 | AbachiStaking    | [0x321019dC2dF5d09A47D3Cf4D8319E82feF9d75d4](https://polygonscan.com/address/0x321019dC2dF5d09A47D3Cf4D8319E82feF9d75d4)   |
