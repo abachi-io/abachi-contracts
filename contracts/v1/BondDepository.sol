@@ -75,7 +75,7 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
         uint pricePaid; // In DAI, for front end viewing
     }
 
-    // Info for incremental adjustments to control variable 
+    // Info for incremental adjustments to control variable
     struct Adjust {
         bool add; // addition or subtraction
         uint rate; // increment
@@ -87,11 +87,11 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
 
     /* ======== INITIALIZATION ======== */
 
-    constructor ( 
+    constructor (
         address _ABI,
         address _principle,
-        address _treasury, 
-        address _DAO, 
+        address _treasury,
+        address _DAO,
         address _bondCalculator,
         address _authority
     ) AbachiAccessControlled(IAbachiAuthority(_authority)){
@@ -118,8 +118,8 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      *  @param _maxDebt uint
      *  @param _initialDebt uint
      */
-    function initializeBondTerms( 
-        uint _controlVariable, 
+    function initializeBondTerms(
+        uint _controlVariable,
         uint _vestingTerm,
         uint _minimumPrice,
         uint _maxPayout,
@@ -142,10 +142,10 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
 
 
 
-    
+
     /* ======== POLICY FUNCTIONS ======== */
 
-    enum PARAMETER { VESTING, PAYOUT, FEE, DEBT }
+    enum PARAMETER { VESTING, PAYOUT, FEE, DEBT, MINIMUM_PRICE }
     /**
      *  @notice set parameters for new bonds
      *  @param _parameter PARAMETER
@@ -153,7 +153,7 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      */
     function setBondTerms ( PARAMETER _parameter, uint _input ) external onlyPolicy() {
         if ( _parameter == PARAMETER.VESTING ) { // 0
-            require( _input >= 10000, "Vesting must be longer than 36 hours" );
+            require( _input >= 64800, "Vesting must be longer than 36 hours" ); // based on 2 second block time
             terms.vestingTerm = _input;
         } else if ( _parameter == PARAMETER.PAYOUT ) { // 1
             require( _input <= 1000, "Payout cannot be above 1 percent" );
@@ -163,6 +163,8 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
             terms.fee = _input;
         } else if ( _parameter == PARAMETER.DEBT ) { // 3
             terms.maxDebt = _input;
+        } else if ( _parameter == PARAMETER.MINIMUM_PRICE ) { // 4
+            terms.minimumPrice = _input;
         }
     }
 
@@ -173,11 +175,11 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      *  @param _target uint
      *  @param _buffer uint
      */
-    function setAdjustment ( 
+    function setAdjustment (
         bool _addition,
-        uint _increment, 
+        uint _increment,
         uint _target,
-        uint _buffer 
+        uint _buffer
     ) external onlyPolicy() {
         require( _increment <= terms.controlVariable.mul( 25 ).div( 1000 ), "Increment too large" );
 
@@ -192,12 +194,12 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
 
     /**
      *  @notice set contract for auto stake
-     *  @param _staking address     
+     *  @param _staking address
      */
     function setStaking( address _staking ) external onlyPolicy() {
-        require( _staking != address(0) );        
+        require( _staking != address(0) );
         staking = _staking;
-    }    
+    }
 
     /* ======== USER FUNCTIONS ======== */
 
@@ -208,16 +210,16 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      *  @param _depositor address
      *  @return uint
      */
-    function deposit( 
-        uint _amount, 
+    function deposit(
+        uint _amount,
         uint _maxPrice,
         address _depositor
     ) external returns ( uint ) {
         require( _depositor != address(0), "Invalid address" );
-
+        require( _depositor == msg.sender, "Depositor is not sender");
         decayDebt();
         require( totalDebt <= terms.maxDebt, "Max capacity reached" );
-        
+
         uint priceInUSD = bondPriceInUSD(); // Stored in bond info
         uint nativePrice = _bondPrice();
 
@@ -241,16 +243,16 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
         IERC20( principle ).safeTransferFrom( msg.sender, address(this), _amount );
         IERC20( principle ).approve( address( treasury ), _amount );
         ITreasury( treasury ).deposit( _amount, principle, profit );
-        
-        if ( fee != 0 ) { // fee is transferred to dao 
-            IERC20( ABI ).safeTransfer( DAO, fee ); 
+
+        if ( fee != 0 ) { // fee is transferred to dao
+            IERC20( ABI ).safeTransfer( DAO, fee );
         }
-        
+
         // total debt is increased
-        totalDebt = totalDebt.add( value ); 
-                
+        totalDebt = totalDebt.add( value );
+
         // depositor info is stored
-        bondInfo[ _depositor ] = Bond({ 
+        bondInfo[ _depositor ] = Bond({
             payout: bondInfo[ _depositor ].payout.add( payout ),
             vesting: terms.vestingTerm,
             lastBlock: block.number,
@@ -262,16 +264,18 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
         emit BondPriceChanged( bondPriceInUSD(), _bondPrice(), debtRatio() );
 
         adjust(); // control variable is adjusted
-        return payout; 
+        return payout;
     }
 
-    /** 
+    /**
      *  @notice redeem bond for user
      *  @param _recipient address
      *  @param _stake bool
      *  @return uint
-     */ 
-    function redeem( address _recipient, bool _stake ) external returns ( uint ) {        
+     */
+    function redeem( address _recipient, bool _stake ) external returns ( uint ) {
+        require( _recipient == msg.sender, "Recipient is not sender");
+
         Bond memory info = bondInfo[ _recipient ];
         uint percentVested = percentVestedFor( _recipient ); // (blocks since last interaction / vesting term remaining)
 
@@ -299,7 +303,7 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
 
 
 
-    
+
     /* ======== INTERNAL HELPER FUNCTIONS ======== */
 
     /**
@@ -311,9 +315,9 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
     function stakeOrSend( address _recipient, bool _stake, uint _amount ) internal returns ( uint ) {
         if ( !_stake ) { // if user does not want to stake
             IERC20( ABI ).transfer( _recipient, _amount ); // send payout
-        } else { // if user wants to stake           
+        } else { // if user wants to stake
             IERC20( ABI ).approve( staking, _amount );
-            IStaking( staking ).stake( _recipient, _amount, false, true );            
+            IStaking( staking ).stake( _recipient, _amount, false, true );
         }
         return _amount;
     }
@@ -376,7 +380,7 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      *  @notice calculate current bond premium
      *  @return price_ uint
      */
-    function bondPrice() public view returns ( uint price_ ) {        
+    function bondPrice() public view returns ( uint price_ ) {
         price_ = terms.controlVariable.mul( debtRatio() ).add( 1000000000 ).div( 1e7 );
         if ( price_ < terms.minimumPrice ) {
             price_ = terms.minimumPrice;
@@ -390,7 +394,7 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
     function _bondPrice() internal returns ( uint price_ ) {
         price_ = terms.controlVariable.mul( debtRatio() ).add( 1000000000 ).div( 1e7 );
         if ( price_ < terms.minimumPrice ) {
-            price_ = terms.minimumPrice;        
+            price_ = terms.minimumPrice;
         } else if ( terms.minimumPrice != 0 ) {
             terms.minimumPrice = 0;
         }
@@ -413,10 +417,10 @@ contract AbachiBondDepositoryV1 is AbachiAccessControlled {
      *  @notice calculate current ratio of debt to ABI supply
      *  @return debtRatio_ uint
      */
-    function debtRatio() public view returns ( uint debtRatio_ ) {   
+    function debtRatio() public view returns ( uint debtRatio_ ) {
         uint supply = IERC20( ABI ).totalSupply();
-        debtRatio_ = FixedPoint.fraction( 
-            currentDebt().mul( 1e9 ), 
+        debtRatio_ = FixedPoint.fraction(
+            currentDebt().mul( 1e9 ),
             supply
         ).decode112with18().div( 1e18 );
     }
