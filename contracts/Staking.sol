@@ -91,8 +91,9 @@ contract AbachiStaking is AbachiAccessControlled {
         bool _rebasing,
         bool _claim
     ) external returns (uint256) {
+        uint256 bounty = rebase();
         ABI.safeTransferFrom(msg.sender, address(this), _amount);
-        _amount = _amount.add(rebase()); // add bounty if rebase occurred
+        _amount = _amount.add(bounty); // add bounty if rebase occurred
         if (_claim && warmupPeriod == 0) {
             return _send(_to, _amount, _rebasing);
         } else {
